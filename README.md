@@ -1,4 +1,4 @@
-# Ubuntu UEFI Secure Boot with Mainline/Custom Kernels
+## Ubuntu UEFI Secure Boot with Mainline/Custom Kernels
 <img src="docs/images/uefi_secure_logo.png" alt="API Connector Module" width="256" align='right'/>
 
 The purpose of this repository is to explain how to sign Ubuntu kernels using a Machine Owner Key for use with UEFI Secure Boot.

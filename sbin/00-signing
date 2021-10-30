@@ -8,38 +8,38 @@ MOK_CERT_NAME="MOK-Kernel"
 MOK_DIRECTORY="/var/lib/shim-signed/mok"
 
 if [ "$#" -ne "2" ] ; then
-	echo "Wrong count of command line arguments. This is not meant to be called directly." >&2
-	exit 1
+    echo "Wrong count of command line arguments. This is not meant to be called directly." >&2
+    exit 1
 fi
 
 if [ ! -x "$(command -v sbsign)" ] ; then
-	echo "sbsign not executable. Bailing." >&2
-	exit 1
+    echo "sbsign not executable. Bailing." >&2
+    exit 1
 fi
 
 
 if [ ! -r "$MOK_DIRECTORY/$MOK_CERT_NAME.der" ] ; then
-	echo "$MOK_DIRECTORY/$MOK_CERT_NAME.der is not readable." >&2
-	exit 1
+    echo "$MOK_DIRECTORY/$MOK_CERT_NAME.der is not readable." >&2
+    exit 1
 fi
 
 if [ ! -r "$MOK_DIRECTORY/$MOK_CERT_NAME.priv" ] ; then
-	echo "$MOK_DIRECTORY/$MOK_CERT_NAME.priv is not readable." >&2
-	exit 1
+    echo "$MOK_DIRECTORY/$MOK_CERT_NAME.priv is not readable." >&2
+    exit 1
 fi
 
 if [ ! -w "$KERNEL_IMAGE" ] ; then
-	echo "Kernel image $KERNEL_IMAGE is not writable." >&2
-	exit 1
+    echo "Kernel image $KERNEL_IMAGE is not writable." >&2
+    exit 1
 fi
 
 if [ ! -r "$MOK_DIRECTORY/$MOK_CERT_NAME.pem" ] ; then
-	echo "$MOK_CERT_NAME.pem missing. Generating from $MOK_CERT_NAME.der."
-	if [ ! -x "$(command -v openssl)" ] ; then
-		echo "openssl could not be found. Bailing." >&2
-		exit 1
-	fi
-	openssl x509 -in "$MOK_DIRECTORY/$MOK_CERT_NAME.der" -inform DER -outform PEM -out "$MOK_DIRECTORY/$MOK_CERT_NAME.pem" || { echo "Conversion failed. Bailing." >&2; exit 1 ; }
+    echo "$MOK_CERT_NAME.pem missing. Generating from $MOK_CERT_NAME.der."
+    if [ ! -x "$(command -v openssl)" ] ; then
+        echo "openssl could not be found. Bailing." >&2
+        exit 1
+    fi
+    openssl x509 -in "$MOK_DIRECTORY/$MOK_CERT_NAME.der" -inform DER -outform PEM -out "$MOK_DIRECTORY/$MOK_CERT_NAME.pem" || { echo "Conversion failed. Bailing." >&2; exit 1 ; }
 fi
 
 echo "Signing $KERNEL_IMAGE..."
