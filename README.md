@@ -12,7 +12,7 @@ It contains scripts to:
 
 - [Introduction](#introduction)
   - [Shim](#shim)
-- [Requirements](#requirements)
+  - [Requirements](#requirements)
 - [Usage](#usage)
   - [Creating a MOK for kernel signing](#creating-a-mok-for-kernel-signing)
   - [Automatically signing all installed kernels](#automatically-signing-all-installed-kernels)
@@ -38,7 +38,7 @@ shim is a simple software package that is designed to work as a first-stage boot
 
 A key part of the shim design is to allow users to control their own systems.  The distro CA key is built in to the shim binary itself, but there is also an extra database of keys that can be managed by the user, the so-called Machine Owner Key (MOK for short).
 
-Keys can be added and removed in the MOK list by the user, entirely separate from the distro CA key.  The mokutil utility can be used to help manage the keys from Linux userland, but changes to the MOK keys may only be confirmed directly from the console at boot time.  This removes the risk of userland malware potentially enrolling new keys and therefore bypassing the entire point of SB.
+Keys can be added and removed in the MOK list by the user, entirely separate from the distro CA key.  The `mokutil` utility can be used to help manage the keys from Linux userland, but changes to the MOK keys may only be confirmed directly from the console at boot time.  This removes the risk of userland malware potentially enrolling new keys and therefore bypassing the entire point of SB.
 
 ### Requirements
 
