@@ -1,4 +1,12 @@
-## Ubuntu Secure Boot with Mainline/Custom Kernels
+## Ubuntu UEFI Secure Boot with Mainline/Custom Kernels
+<img src="docs/images/uefi_secure_logo.png" alt="API Connector Module" width="256" align='right'/>
+
+The purpose of this repository is to explain how to sign Ubuntu kernels using a Machine Owner Key for use with UEFI Secure Boot.
+
+It contains scripts to:
+
+- Create and enroll Machine Owner Key (MOK) for signing kernels
+- Post-installation scripts to automatically sign kernels with the MOK
 
 ### Introduction
 
@@ -33,6 +41,8 @@ Keys can be added and removed in the MOK list by the user, entirely separate fro
 ... To be expanded ...
 
 ### References
+
+I used the following resources to compile this repository.
 
 - https://wiki.ubuntu.com/UEFI/SecureBoot/Testing
 - https://answers.launchpad.net/ubuntu/+question/697140
