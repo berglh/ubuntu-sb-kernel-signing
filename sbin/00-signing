@@ -1,0 +1,46 @@
+#!/bin/sh
+# Author: @maxried https://gist.github.com/maxried/796d1f3101b3a03ca153fa09d3af8a11
+
+set -e
+
+KERNEL_IMAGE="$2"
+MOK_CERT_NAME="MOK-Kernel"
+MOK_DIRECTORY="/var/lib/shim-signed/mok"
+
+if [ "$#" -ne "2" ] ; then
+	echo "Wrong count of command line arguments. This is not meant to be called directly." >&2
+	exit 1
+fi
+
+if [ ! -x "$(command -v sbsign)" ] ; then
+	echo "sbsign not executable. Bailing." >&2
+	exit 1
+fi
+
+
+if [ ! -r "$MOK_DIRECTORY/$MOK_CERT_NAME.der" ] ; then
+	echo "$MOK_DIRECTORY/$MOK_CERT_NAME.der is not readable." >&2
+	exit 1
+fi
+
+if [ ! -r "$MOK_DIRECTORY/$MOK_CERT_NAME.priv" ] ; then
+	echo "$MOK_DIRECTORY/$MOK_CERT_NAME.priv is not readable." >&2
+	exit 1
+fi
+
+if [ ! -w "$KERNEL_IMAGE" ] ; then
+	echo "Kernel image $KERNEL_IMAGE is not writable." >&2
+	exit 1
+fi
+
+if [ ! -r "$MOK_DIRECTORY/$MOK_CERT_NAME.pem" ] ; then
+	echo "$MOK_CERT_NAME.pem missing. Generating from $MOK_CERT_NAME.der."
+	if [ ! -x "$(command -v openssl)" ] ; then
+		echo "openssl could not be found. Bailing." >&2
+		exit 1
+	fi
+	openssl x509 -in "$MOK_DIRECTORY/$MOK_CERT_NAME.der" -inform DER -outform PEM -out "$MOK_DIRECTORY/$MOK_CERT_NAME.pem" || { echo "Conversion failed. Bailing." >&2; exit 1 ; }
+fi
+
+echo "Signing $KERNEL_IMAGE..."
+sbsign --key "$MOK_DIRECTORY/$MOK_CERT_NAME.priv" --cert "$MOK_DIRECTORY/$MOK_CERT_NAME.pem" --output "$KERNEL_IMAGE" "$KERNEL_IMAGE"
