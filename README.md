@@ -76,6 +76,8 @@ sudo bash mok-setup.sh
 
 ### Automatically signing all installed kernels
 
+**Important**: This script will sign all installed kernels automatically, this is not ideal for security so tread carefully. Check the next section a method that will validate and only sign Ubuntu mainline kernels from a trusted source.
+
 The script [00-signing](sbin/00-signing.sh) as sourced from [@maxried's Gist](https://gist.github.com/maxried/796d1f3101b3a03ca153fa09d3af8a11), allows you to automatically sign kernels using the `/var/lib/shim-signed/mok/MOK-Kernel.der` certificate. Usage from the Gist:
 
 > This script goes into `/etc/kernel/postinst.d`.
