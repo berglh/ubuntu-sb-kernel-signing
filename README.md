@@ -6,17 +6,17 @@ The purpose of this repository is to explain how to sign Ubuntu kernels using a 
 It contains scripts to:
 
 - Create and enrol Machine Owner Key (MOK) for signing kernels
-- Post-installation scripts that automate the signing of kernels with the MOK
+- Post-installation scripts that automate signing of kernels with a MOK
 
 ### Topics
 
 - [Introduction](#introduction)
- - [Shim](#shim)
- - [Requirements](#requirements)
+  - [Shim](#shim)
+  - [Requirements](#requirements)
 - [Usage](#usage)
- - [Creating a MOK for kernel signing](#creating-a-mok-for-kernel-signing)
- - [Automated signing of all installed kernels](#automated-signing-of-all-installed-kernels)
- - [Automated signing of kernels installed with Mainline](#automated-signing-of-kernels-installed-with-mainline)
+  - [Creating a MOK for kernel signing](#creating-a-mok-for-kernel-signing)
+  - [Automated signing of all installed kernels](#automated-signing-of-all-installed-kernels)
+  - [Automated signing of kernels installed with Mainline](#automated-signing-of-kernels-installed-with-mainline)
 - [References](#references)
 
 ## Introduction
@@ -155,6 +155,7 @@ You have to make it executable by root: <br>
 sudo chown root:root /etc/kernel/postinst.d/00-mainline-signing
 sudo chmod u+rx /etc/kernel/postinst.d/00-mainline-signing
 ```
+
 **Important**: If you defined a location other than `/var/lib/shim-signed/mok/MOK-Kernel.der` for the kernel signing MOK, you will need to edit the script to change the `MOK_CERT_NAME` variable to match the MOK filename without the extension: i.e. `MOK-my-custom-name`
 
 ```bash
@@ -164,6 +165,14 @@ KERNEL_IMAGE="$2"
 MOK_CERT_NAME="MOK-Kernel" # edit this line for the cert name, not including the extension
 MOK_DIRECTORY="/var/lib/shim-signed/mok" # edit this line if you stored your MOK in a different location
 ```
+
+**Note**: This has only been tested with kernel versions newer than 5.13.12. The process of extracting the the `data.tar.zst` from the `deb` file is a relatively new process. The previous type had a `tar.xz` file. The script can be modified to work using `xz` decompression for use with older kernels using the commented line below:
+```bash
+echo "Verify image being signed comes from mainline deb package"
+ar p $KERNEL_IMG_DEB data.tar.zst | tar -I zstd -xOf - .$KERNEL_IMAGE > $SIGN_TEMP/$(sed 's:.*/::' <<< $KERNEL_IMAGE)
+# ar p $KERNEL_IMG_DEB data.tar.xz | tar -JxOf - .$KERNEL_IMAGE > $SIGN_TEMP/$(sed 's:.*/::' <<< $KERNEL_IMAGE)
+```
+
 
 ## References
 

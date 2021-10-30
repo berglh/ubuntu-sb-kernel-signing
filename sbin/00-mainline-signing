@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# requires deb packages: ar zstd tar curl cmp openssl sbsigntool
-# sudo apt install ar zstd tar curl cmp openssl sbsigntool
+# requires deb packages: binutils zstd tar curl diffutils openssl sbsigntool
+# sudo apt install binutils zstd tar curl diffutils openssl sbsigntool
 # inspired by @maxried https://gist.github.com/maxried/796d1f3101b3a03ca153fa09d3af8a11
 
 set -e
