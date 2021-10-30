@@ -1,4 +1,4 @@
-## Ubuntu UEFI Secure Boot with Mainline/Custom Kernels
+# Ubuntu UEFI Secure Boot with Mainline/Custom Kernels
 <img src="docs/images/uefi_secure_logo.png" alt="API Connector Module" width="256" align='right'/>
 
 The purpose of this repository is to explain how to sign Ubuntu kernels using a Machine Owner Key for use with UEFI Secure Boot.
@@ -7,8 +7,9 @@ It contains scripts to:
 
 - Create and enroll Machine Owner Key (MOK) for signing kernels
 - Post-installation scripts to automatically sign kernels with the MOK
+<br/><br/><br/><br/><br/>
 
-### Introduction
+## Introduction
 
 UEFI Secure Boot (SB) is a verification mechanism for ensuring that code launched by a computer's UEFI firmware is trusted.  It is designed to protect a system against malicious code being loaded and executed early in the boot process, before the operating system has been loaded.  It is desirable to have this enabled to prevent user space programs from installing malicious booloaders, kernels or kernel modules.
 
