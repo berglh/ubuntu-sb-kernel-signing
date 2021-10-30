@@ -91,6 +91,8 @@ sudo chmod u+rx /etc/kernel/postinst.d/00-signing
 ```
 > It assists you with automatically signing freshly installed kernel images using the machine owner key in a way similar to what `dkms` does. This is mainly useful if you want to use mainline kernels on Ubuntu on Secure Boot enabled systems. This needs `shim-signed` to be set up. 
 
+If you defined a location other than `/var/lib/shim-signed/mok/MOK-Kernel.der` for the kernel signing MOK, you will need to edit the script to change the `MOK_CERT_NAME` variable to match the MOK filename without the extension: i.e. `MOK-my-custom-name`
+
 This script works well for signing **all** kernels being installed.
 
 ###  Automatically signing kernels installed with mainline
@@ -113,6 +115,8 @@ You have to make it executable by root: <br>
 sudo chown root:root /etc/kernel/postinst.d/00-mainline-signing
 sudo chmod u+rx /etc/kernel/postinst.d/00-mainline-signing
 ```
+**Important**: If you defined a location other than `/var/lib/shim-signed/mok/MOK-Kernel.der` for the kernel signing MOK, you will need to edit the script to change the `MOK_CERT_NAME` variable to match the MOK filename without the extension: i.e. `MOK-my-custom-name`
+
 
 ## References
 
