@@ -33,7 +33,7 @@ if grep -q -E 'vmlinuz|generic' <<< $KERNEL_IMAGE; then
     KERNEL_VERSION=$(sed -e 's/^.*vmlinuz-//g' -e 's/-generic//g' <<< $KERNEL_IMAGE)
 else
     echo "${KERNEL_IMAGE} is not a generic kernel image, not auto-signing for safety" >&2
-    exit 1
+    exit 0
 fi
 
 echo "Finding matching Ubuntu mainline kernels"
@@ -44,7 +44,7 @@ if grep -q 'mainline' <<< $KERNEL_IMG_DEB; then
     echo "${KERNEL_VERSION} is a kernel image version matching a mainline deb"
 else
     echo "${KERNEL_VERSION} is not a kernel installed by mainline" >&2
-    exit 1
+    exit 0
 fi
 
 echo "Checksum of Linux deb from mainline"
@@ -58,7 +58,7 @@ if sha256sum -c <<< "$(sed '1,/^.*ha256:$/d' $SIGN_TEMP/CHECKSUMS | grep $(sed '
     echo "Successfully sha256 verified deb package"
 else
     echo "Could not sha256 verfiy deb package, aborting sign" >&2
-    exit 1
+    exit 0
 fi
 
 echo "Verify image being signed comes from mainline deb package"
