@@ -38,7 +38,7 @@ fi
 
 echo "Finding matching Ubuntu mainline kernels"
 cd /
-KERNEL_IMG_DEB=$(find /home /root -name "*image-unsigned-${KERNEL_VERSION}*.deb")
+KERNEL_IMG_DEB=$(find /home /root -name "*image-unsigned-${KERNEL_VERSION}*.deb" | grep -m1 "mainline")
 
 if grep -q 'mainline' <<< $KERNEL_IMG_DEB; then
     echo "${KERNEL_VERSION} is a kernel image version matching a mainline deb"
@@ -49,7 +49,7 @@ fi
 
 echo "Checksum of Linux deb from mainline"
 MAINLINE_FOLDER=$(sed -e 's:/[^\/]*\.deb::' <<< $KERNEL_IMG_DEB)
-KERNEL_MAIN_VERSION=v$(sed -e 's/-.*$//' <<< $KERNEL_VERSION)
+KERNEL_MAIN_VERSION=v$(sed -e 's/-.*$//' -e 's/\.0$//' <<< $KERNEL_VERSION)
 ARCH=$(dpkg --print-architecture)
 curl -k -Ss https://kernel.ubuntu.com/~kernel-ppa/mainline/${KERNEL_MAIN_VERSION}/${ARCH}/CHECKSUMS -o $SIGN_TEMP/CHECKSUMS
 cd $MAINLINE_FOLDER
@@ -82,17 +82,17 @@ if [ ! -r "$MOK_DIRECTORY/$MOK_CERT_NAME.priv" ] ; then
 fi
 
 if [ ! -w "$KERNEL_IMAGE" ] ; then
-    echo "Kernel image $KERNEL_IMAGE is not writable." >&2
-    exit 1
+	echo "Kernel image $KERNEL_IMAGE is not writable." >&2
+	exit 1
 fi
 
 if [ ! -r "$MOK_DIRECTORY/$MOK_CERT_NAME.pem" ] ; then
-    echo "$MOK_CERT_NAME.pem missing. Generating from $MOK_CERT_NAME.der."
-    if [ ! -x "$(command -v openssl)" ] ; then
-        echo "openssl could not be found." >&2
-        exit 1
-    fi
-    openssl x509 -in "$MOK_DIRECTORY/$MOK_CERT_NAME.der" -inform DER -outform PEM -out "$MOK_DIRECTORY/$MOK_CERT_NAME.pem" || { echo "Conversion failed. Bailing." >&2; exit 1 ; }
+	echo "$MOK_CERT_NAME.pem missing. Generating from $MOK_CERT_NAME.der."
+	if [ ! -x "$(command -v openssl)" ] ; then
+		echo "openssl could not be found." >&2
+		exit 1
+	fi
+	openssl x509 -in "$MOK_DIRECTORY/$MOK_CERT_NAME.der" -inform DER -outform PEM -out "$MOK_DIRECTORY/$MOK_CERT_NAME.pem" || { echo "Conversion failed. Bailing." >&2; exit 1 ; }
 fi
 
 echo "Signing $KERNEL_IMAGE..."
