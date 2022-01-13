@@ -62,7 +62,16 @@ else
 fi
 
 echo "Verify image being signed comes from mainline deb package"
-ar p $KERNEL_IMG_DEB data.tar.zst | tar -I zstd -xOf - .$KERNEL_IMAGE > $SIGN_TEMP/$(sed 's:.*/::' <<< $KERNEL_IMAGE)
+
+if grep -q 'data.tar.zst' <<< $(ar t $KERNEL_IMG_DEB); then
+    ar p $KERNEL_IMG_DEB data.tar.zst | tar -I zstd -xOf - .$KERNEL_IMAGE > $SIGN_TEMP/$(sed 's:.*/::' <<< $KERNEL_IMAGE)
+elif grep -q 'data.tar.xz' <<< $(ar t $KERNEL_IMG_DEB); then
+    ar p $KERNEL_IMG_DEB data.tar.xz | tar -JxOf - .$KERNEL_IMAGE > $SIGN_TEMP/$(sed 's:.*/::' <<< $KERNEL_IMAGE)
+else
+    echo "Could not find kernel image in referce DEB file" >&2
+    exit 0
+fi
+
 cmp $KERNEL_IMAGE $SIGN_TEMP/$(sed 's:.*/::' <<< $KERNEL_IMAGE)
 if [ $? == 0 ]; then
     echo "Validated $KERNEL_IMAGE is present in $(sed 's:.*/::' <<< $KERNEL_IMG_DEB)"
