@@ -28,11 +28,11 @@ echo "
 SIGN_TEMP="$(mktemp -d)"
 trap 'rm -rf -- "$SIGN_TEMP"' EXIT
 
-if grep -q -E 'vmlinuz|generic' <<< $KERNEL_IMAGE; then
+if grep -q 'vmlinuz\-.*\-\([0-9]\{6\}\)\-generic' <<< $KERNEL_IMAGE; then
     echo "${KERNEL_IMAGE} is a generic kernel image to consider signing"
     KERNEL_VERSION=$(sed -e 's/^.*vmlinuz-//g' -e 's/-generic//g' <<< $KERNEL_IMAGE)
 else
-    echo "${KERNEL_IMAGE} is not a generic kernel image, not auto-signing for safety" >&2
+    echo "${KERNEL_IMAGE} is an official signed image or is not a generic kernel image, not auto-signing for safety" >&2
     exit 0
 fi
 
