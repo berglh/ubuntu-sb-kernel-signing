@@ -38,7 +38,7 @@ fi
 
 echo "Finding matching Ubuntu mainline kernels"
 cd /
-KERNEL_IMG_DEB=$(find /home /root -name "*image-unsigned-${KERNEL_VERSION}*.deb" | grep -m1 "mainline")
+KERNEL_IMG_DEB=$(find /home /root -name "*image-unsigned-${KERNEL_VERSION}*.deb")
 
 if grep -q 'mainline' <<< $KERNEL_IMG_DEB; then
     echo "${KERNEL_VERSION} is a kernel image version matching a mainline deb"
@@ -52,6 +52,7 @@ MAINLINE_FOLDER=$(sed -e 's:/[^\/]*\.deb::' <<< $KERNEL_IMG_DEB)
 KERNEL_MAIN_VERSION=v$(sed -e 's/-.*$//' -e 's/\.0$//' <<< $KERNEL_VERSION)
 ARCH=$(dpkg --print-architecture)
 curl -k -Ss https://kernel.ubuntu.com/~kernel-ppa/mainline/${KERNEL_MAIN_VERSION}/${ARCH}/CHECKSUMS -o $SIGN_TEMP/CHECKSUMS
+echo "Mainline folder: $MAINLINE_FOLDER, Kernel image: $KERNEL_IMAGE, Sign temp: $SIGN_TEMP"
 cd $MAINLINE_FOLDER
 
 if sha256sum -c <<< "$(sed '1,/^.*ha256:$/d' $SIGN_TEMP/CHECKSUMS | grep $(sed 's:.*/::' <<< $KERNEL_IMG_DEB))"; then
@@ -67,8 +68,10 @@ if grep -q 'data.tar.zst' <<< $(ar t $KERNEL_IMG_DEB); then
     ar p $KERNEL_IMG_DEB data.tar.zst | tar -I zstd -xOf - .$KERNEL_IMAGE > $SIGN_TEMP/$(sed 's:.*/::' <<< $KERNEL_IMAGE)
 elif grep -q 'data.tar.xz' <<< $(ar t $KERNEL_IMG_DEB); then
     ar p $KERNEL_IMG_DEB data.tar.xz | tar -JxOf - .$KERNEL_IMAGE > $SIGN_TEMP/$(sed 's:.*/::' <<< $KERNEL_IMAGE)
+elif grep -q 'data.tar' <<< $(ar t $KERNEL_IMG_DEB); then
+    ar p $KERNEL_IMG_DEB data.tar | tar -xOf - .$KERNEL_IMAGE > $SIGN_TEMP/$(sed 's:.*/::' <<< $KERNEL_IMAGE)
 else
-    echo "Could not find kernel image in referce DEB file" >&2
+    echo "Could not find kernel image in reference DEB file" >&2
     exit 0
 fi
 
