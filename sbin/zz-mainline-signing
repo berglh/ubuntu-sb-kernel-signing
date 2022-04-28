@@ -36,18 +36,47 @@ else
     exit 0
 fi
 
+echo "Checking if kernel image is already signed"
+if grep -q "signature 1" <<< $(sbverify --list "$KERNEL_IMAGE" 2>&1); then
+    echo "${KERNEL_IMAGE} is already signed, aborting signing script" >&2
+    sbverify --list "$KERNEL_IMAGE"
+    echo "Note: If this fails to boot, it may be because your system does not trust this MOK"
+    exit 0
+fi
+
 echo "Finding matching Ubuntu mainline kernels"
 cd /
 KERNEL_IMG_DEB=$(find /home /root -name "*image-unsigned-${KERNEL_VERSION}*.deb")
 
-if grep -q 'mainline' <<< $KERNEL_IMG_DEB; then
-    echo "${KERNEL_VERSION} is a kernel image version matching a mainline deb"
+echo "Checking if there is more than one or no matching kernel deb files"
+if (($(echo "$KERNEL_IMG_DEB" | wc -l) < 1)); then
+    echo "
+Error: No matching usigned mainline deb file found in /home or /root paths"  >&2
+    echo "Unable to validate official mainline kernel, move deb file into one of these paths, uninstall from apt and try again
+    "
+    exit 1
+elif (($(echo "$KERNEL_IMG_DEB" | wc -l) > 1)); then
+    echo "
+Error: More than one matching unsigned deb file found in /home or /root paths" >&2
+    echo "First remove one of the following files from the file system:"
+    echo "$KERNEL_IMG_DEB"
+    echo "Then reinstall the kernel using the same method again [mainline, dpkg -i]
+    "
+    exit 1
 else
-    echo "${KERNEL_VERSION} is not a kernel installed by mainline" >&2
-    exit 0
+    echo "Found matching deb file: $KERNEL_IMG_DEB"
 fi
 
+# berglh: Removing the check for mainline in the path, as we want to trust any mainline kernel installed regardless of system path
+# if grep -q 'mainline' <<< $KERNEL_IMG_DEB; then
+#     echo "${KERNEL_VERSION} is a kernel image version matching a mainline deb"
+# else
+#     echo "${KERNEL_VERSION} is not a kernel installed by mainline" >&2
+#     exit 0
+# fi
+
 echo "Checksum of Linux deb from mainline"
+
 MAINLINE_FOLDER=$(sed -e 's:/[^\/]*\.deb::' <<< $KERNEL_IMG_DEB)
 KERNEL_MAIN_VERSION=v$(sed -e 's/-.*$//' -e 's/\.0$//' <<< $KERNEL_VERSION)
 ARCH=$(dpkg --print-architecture)
@@ -109,8 +138,10 @@ fi
 
 echo "Signing $KERNEL_IMAGE..."
 sbsign --key "$MOK_DIRECTORY/$MOK_CERT_NAME.priv" --cert "$MOK_DIRECTORY/$MOK_CERT_NAME.pem" --output "$KERNEL_IMAGE" "$KERNEL_IMAGE"
+grep -q "signature 1" <<< $(sbverify --list "$KERNEL_IMAGE" 2>&1)
 
 if [ $? == 0 ]; then # adding a new line at the end to show clearly show the end of script
+    sbverify --list "$KERNEL_IMAGE"
     echo "Successfully signed $KERNEL_IMAGE
     "
 else

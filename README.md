@@ -17,6 +17,7 @@ It contains scripts to:
   - [Creating a MOK for kernel signing](#creating-a-mok-for-kernel-signing)
   - [Automated signing of all installed kernels](#automated-signing-of-all-installed-kernels)
   - [Automated signing of kernels installed with Mainline](#automated-signing-of-kernels-installed-with-mainline)
+  - [Manually signing a kernel](#manually-signing-a-kernel)
 - [References](#references)
 
 ## Introduction
@@ -110,16 +111,18 @@ sudo bash mok-setup.sh
 
 **Important**: This script will sign any installed kernels automatically. This is not ideal for security so tread carefully. Check the [next section](#automated-signing-of-kernels-installed-with-mainline) for a method that will validate and only sign Ubuntu mainline kernels installed using [mainline](https://github.com/bkw777/mainline).
 
-The script [00-signing](sbin/00-signing.sh) as sourced from [@maxried's Gist](https://gist.github.com/maxried/796d1f3101b3a03ca153fa09d3af8a11), allows you to automatically sign kernels using the `/var/lib/shim-signed/mok/MOK-Kernel.der` certificate. Usage from the Gist:
+**Update** 2022-04-28: Renamed signing scripts from `00-` prefix to `zz-` prefix to ensure any other scripts before `zz-update-grub` execute accordingly. This is important so that NVIDIA DKMS modules are generated before the signing script has a chance to fail. This will then enable the DKMS modules to load correctly if Secure Boot is disabled.
+
+The script [zz-signing](sbin/zz-signing.sh) as sourced from [@maxried's Gist](https://gist.github.com/maxried/796d1f3101b3a03ca153fa09d3af8a11), allows you to automatically sign kernels using the `/var/lib/shim-signed/mok/MOK-Kernel.der` certificate. Usage from the Gist:
 
 > This script goes into `/etc/kernel/postinst.d`.
 ```bash
-sudo cp sbin/00-signing /etc/kernel/postinst.d
+sudo cp sbin/zz-signing /etc/kernel/postinst.d
 ```
 > You have to make it executable by root: <br>
 ```bash
-sudo chown root:root /etc/kernel/postinst.d/00-signing
-sudo chmod u+rx /etc/kernel/postinst.d/00-signing
+sudo chown root:root /etc/kernel/postinst.d/zz-signing
+sudo chmod u+rx /etc/kernel/postinst.d/zz-signing
 ```
 > It assists you with automatically signing freshly installed kernel images using the machine owner key in a way similar to what `dkms` does. This is mainly useful if you want to use mainline kernels on Ubuntu on Secure Boot enabled systems. This needs `shim-signed` to be set up. 
 
@@ -135,9 +138,11 @@ MOK_DIRECTORY="/var/lib/shim-signed/mok" # edit this line if you stored your MOK
 
 A reminder, this script works well for signing **all** kernel images being installed.
 
-###  Automated signing of kernels installed with mainline
+###  Automated signing of mainline kernels installed with mainline or via dpkg
 
-The script [00-mainline-signing](sbin/00-mainline-signing.sh) is designed to only sign kernels that are installed using the [mainline](https://github.com/bkw777/mainline) Ubuntu utility. This script performs additional checks that validate the authenticity of the kernel images.
+**Update** 2022-04-28: Renamed signing scripts from `00-` prefix to `zz-` prefix to ensure any other scripts before `zz-update-grub` execute accordingly. This is important so that NVIDIA DKMS modules are generated before the signing script has a chance to fail. This will then enable the DKMS modules to load correctly if Secure Boot is disabled.
+
+The script [zz-mainline-signing](sbin/zz-mainline-signing.sh) is designed to only sign kernels that are installed using the [mainline](https://github.com/bkw777/mainline) Ubuntu utility or via `dpkg` where the kerenl was downloaded and installed from the [Ubuntu Mainline](https://kernel.ubuntu.com/~kernel-ppa/mainline/?C=M;O=D) website. This script performs additional checks that validate the authenticity of the kernel images.
 
 1. Searches for matching deb files downloaded by mainline
 2. Downloads the checksum file from the Ubuntu mainline servers
@@ -148,12 +153,12 @@ The script [00-mainline-signing](sbin/00-mainline-signing.sh) is designed to onl
 
 This script goes into `/etc/kernel/postinst.d`.
 ```bash
-sudo cp sbin/00-mainline-signing /etc/kernel/postinst.d
+sudo cp sbin/zz-mainline-signing /etc/kernel/postinst.d
 ```
 You have to make it executable by root: <br>
 ```bash
-sudo chown root:root /etc/kernel/postinst.d/00-mainline-signing
-sudo chmod u+rx /etc/kernel/postinst.d/00-mainline-signing
+sudo chown root:root /etc/kernel/postinst.d/zz-mainline-signing
+sudo chmod u+rx /etc/kernel/postinst.d/zz-mainline-signing
 ```
 
 **Important**: If you defined a location other than `/var/lib/shim-signed/mok/MOK-Kernel.der` for the kernel signing MOK, you will need to edit the script to change the `MOK_CERT_NAME` variable to match the MOK filename without the extension: i.e. `MOK-my-custom-name`
@@ -173,6 +178,42 @@ ar p $KERNEL_IMG_DEB data.tar.zst | tar -I zstd -xOf - .$KERNEL_IMAGE > $SIGN_TE
 # ar p $KERNEL_IMG_DEB data.tar.xz | tar -JxOf - .$KERNEL_IMAGE > $SIGN_TEMP/$(sed 's:.*/::' <<< $KERNEL_IMAGE)
 ```
 
+### Manually signing a kernel
+
+If you install a kernel that doesn't get signed appropriately, you may opt to manually sign the kernel using the MOK certificate generated by [mok-setup.sh](sbin/mok-setup.sh).
+
+**Important**: Ensure as much as possible that the kernel you're signing can be trusted. Validate checksums if available by the download website.
+
+```bash
+# List the kernel images installed in /boot
+$ sudo ls -l /boot/vmlinuz*
+lrwxrwxrwx 1 root root       33 Apr 28 12:15 /boot/vmlinuz -> vmlinuz-5.17.0-4.1-liquorix-amd64
+-rw------- 1 root root 10242240 Mar 25 01:27 /boot/vmlinuz-5.13.0-39-generic
+-rw------- 1 root root 10243552 Apr 15 02:41 /boot/vmlinuz-5.13.0-41-generic
+-rw------- 1 root root 10363176 Apr 25 11:39 /boot/vmlinuz-5.15.6-051506-generic
+-rw-r--r-- 1 root root  8164544 Apr 21 10:37 /boot/vmlinuz-5.17.0-4.1-liquorix-amd64
+-rw-r--r-- 1 root root  8168584 Apr 28 11:11 /boot/vmlinuz-5.17.0-5.1-liquorix-amd64
+lrwxrwxrwx 1 root root       33 Apr 28 12:15 /boot/vmlinuz.old -> vmlinuz-5.17.0-5.1-liquorix-amd64
+
+# Verify the image isn't signed already
+$ sudo sbverify --list /boot/vmlinuz-5.17.0-4.1-liquorix-amd64
+No signature table present
+
+# Sign the image using the MOK certificate generated by sbin/mok-setup.sh
+# Note: 
+#   1: Swap out the location of the desired kernel image in --output and the last argument
+#   2: You may need to adjust the paths to the MOK cert files if you customised these during 
+$ sudo sbsign --key "/var/lib/shim-signed/mok/MOK-Kernel.priv" --cert "/var/lib/shim-signed/mok/MOK-Kernel.pem" --output "/boot/vmlinuz-5.17.0-4.1-liquorix-amd64" "/boot/vmlinuz-5.17.0-4.1-liquorix-amd64"
+Signing Unsigned original image
+
+# Verify the image is signed correctly
+$ sudo sbverify --list /boot/vmlinuz-5.17.0-4.1-liquorix-amd64
+image signature issuers:
+ - [ Your MOK issuer information ]
+image signature certificates:
+ - subject: [ Your MOK key information ]
+   issuer:  [ Your MOK issuer information ]
+```
 
 ## References
 
