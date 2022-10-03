@@ -19,7 +19,7 @@ echo "
 echo "Enter OpenSSL config settings, or enter to accept defaults"
 echo ''
 
-read -p "OpenSSL MOK config file path (default: /etc/ssl/openssl-mok.cnf): "
+read -p "OpenSSL MOK config file path (default: /etc/ssl/openssl-mok.cnf): " CONFIGFILE
 CONFIGFILE=${CONFIGFILE:-"/etc/ssl/openssl-mok.cnf"}
 
 read -p "Country code (default: UK): " COUNTRYCODE
