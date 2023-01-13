@@ -113,7 +113,7 @@ sudo bash mok-setup.sh
 
 **Update** 2022-04-28: Renamed signing scripts from `00-` prefix to `zz-` prefix to ensure any other scripts before `zz-update-grub` execute accordingly. This is important so that NVIDIA DKMS modules are generated before the signing script has a chance to fail. This will then enable the DKMS modules to load correctly if Secure Boot is disabled.
 
-The script [zz-signing](sbin/zz-signing.sh) as sourced from [@maxried's Gist](https://gist.github.com/maxried/796d1f3101b3a03ca153fa09d3af8a11), allows you to automatically sign kernels using the `/var/lib/shim-signed/mok/MOK-Kernel.der` certificate. Usage from the Gist:
+The script [zz-signing](sbin/zz-signing) as sourced from [@maxried's Gist](https://gist.github.com/maxried/796d1f3101b3a03ca153fa09d3af8a11), allows you to automatically sign kernels using the `/var/lib/shim-signed/mok/MOK-Kernel.der` certificate. Usage from the Gist:
 
 > This script goes into `/etc/kernel/postinst.d`.
 ```bash
@@ -142,7 +142,7 @@ A reminder, this script works well for signing **all** kernel images being insta
 
 **Update** 2022-04-28: Renamed signing scripts from `00-` prefix to `zz-` prefix to ensure any other scripts before `zz-update-grub` execute accordingly. This is important so that NVIDIA DKMS modules are generated before the signing script has a chance to fail. This will then enable the DKMS modules to load correctly if Secure Boot is disabled.
 
-The script [zz-mainline-signing](sbin/zz-mainline-signing.sh) is designed to only sign kernels that are installed using the [mainline](https://github.com/bkw777/mainline) Ubuntu utility or via `dpkg` where the kerenl was downloaded and installed from the [Ubuntu Mainline](https://kernel.ubuntu.com/~kernel-ppa/mainline/?C=M;O=D) website. This script performs additional checks that validate the authenticity of the kernel images.
+The script [zz-mainline-signing](sbin/zz-mainline-signing) is designed to only sign kernels that are installed using the [mainline](https://github.com/bkw777/mainline) Ubuntu utility or via `dpkg` where the kerenl was downloaded and installed from the [Ubuntu Mainline](https://kernel.ubuntu.com/~kernel-ppa/mainline/?C=M;O=D) website. This script performs additional checks that validate the authenticity of the kernel images.
 
 1. Searches for matching deb files downloaded by mainline
 2. Downloads the checksum file from the Ubuntu mainline servers
