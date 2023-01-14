@@ -46,7 +46,7 @@ fi
 
 echo "Finding matching Ubuntu mainline kernels"
 cd /
-KERNEL_IMG_DEB=$(find /home /root -name "*image-unsigned-${KERNEL_VERSION}*.deb")
+KERNEL_IMG_DEB=$(find /home /root -name "*image-unsigned-${KERNEL_VERSION}*.deb" 2> /dev/null ; exit 0)
 
 echo "Checking if there is more than one or no matching kernel deb files"
 if (($(echo "$KERNEL_IMG_DEB" | wc -l) < 1)); then
@@ -152,3 +152,4 @@ else
     " >&2
     exit 1
 fi
+
