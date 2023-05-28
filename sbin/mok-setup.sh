@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ "$EUID" != 0 ]; then
    echo "This script must be run as root to write the OpenSSL MOK config file" 
@@ -19,10 +19,9 @@ fi
 
 REQURIED_PACKAGES=("mokutil" "openssl" "sbsigntool" "grub-efi-amd64-signed" "fwts")
 
-for dpkg in ${REQURIED_PACKAGES[@]}; do
-    printf "Checking if ${dpkg} is installed..";
-    dpkg -s ${dpkg} | grep Status | grep -q installed;
-    if [ "$?" != 0 ]; then
+for dpkg in "${REQURIED_PACKAGES[@]}"; do
+    echo -n "Checking if ${dpkg} is installed..";
+   if ! dpkg -s "${dpkg}" | grep Status | grep -q installed; then
         echo "Ubuntu package ${dpkg} is required before continuing"
         echo "Install using: sudo apt install ${dpkg}"
         exit 1
@@ -44,7 +43,7 @@ It can be used for creating key to be used for signing:
 "
 
 create_mok_config() {
-    read -r -p "Generate OpenSSL MOK config file? [Y/n]
+    read -rp "Generate OpenSSL MOK config file? [Y/n]
 Required for the first run (default: Y): " _response
     _response=${_response:-"Y"}
     case "$_response" in
@@ -52,7 +51,7 @@ Required for the first run (default: Y): " _response
         source mok-config.sh
         ;;
         [Nn])
-        read -p "Provide OpenSSL MOK config file path (default: /etc/ssl/openssl-mok.cnf): "
+        read -rp "Provide OpenSSL MOK config file path (default: /etc/ssl/openssl-mok.cnf): "
         CONFIGFILE=${CONFIGFILE:-"/etc/ssl/openssl-mok.cnf"}
         ;;
         *)
@@ -63,7 +62,7 @@ Required for the first run (default: Y): " _response
 create_mok_config
 
 create_mok_certs() {
-    read -r -p "
+    read -rp "
 Create OpenSSL MOK certificates? [Y/n]
 Required for the first run (default: Y): " _response
     _response=${_response:-"Y"}
@@ -72,9 +71,9 @@ Required for the first run (default: Y): " _response
         source mok-create.sh
         ;;
         [Nn])
-        read -p "Provide path to existing MOK certificates (default: /var/lib/shim-signed/mok/): "
+        read -rp "Provide path to existing MOK certificates (default: /var/lib/shim-signed/mok/): "
         MOK_CERT_DIR=${MOK_CERT_DIR:-"/var/lib/shim-signed/mok/"}
-        read -p "Provide the MOK certificate name (default: MOK-Kernel): "
+        read -rp "Provide the MOK certificate name (default: MOK-Kernel): "
         MOK_CERT_NAME=${MOK_CERT_NAME:-"MOK-Kernel"}
         ;;
         *)
@@ -89,7 +88,7 @@ enroll_mok_cert() {
 ########
 ## Enroll MOK Certificate
 "
-    read -r -p "Enroll MOK certificate to MokManager? [y/N]
+    read -rp "Enroll MOK certificate to MokManager? [y/N]
 Required for validating signed kernel images (default: N): " _response
     _response=${_response:-"N"}
     case "$_response" in
@@ -99,9 +98,9 @@ Upon reboot of the system, the blue MokManager screen will appear and allow you 
 You will need to type the password used during this enroll process to successfully enroll the MOK.
 "
         sleep 5
-        mokutil --import ${MOK_CERT_DIR}/${MOK_CERT_NAME}.der
-        if [ $? == 0 ]; then
-            read -r -p "Do you want to reboot now to complete the MOK enroll process? [y/n]: " _response
+
+        if mokutil --import "${MOK_CERT_DIR}/${MOK_CERT_NAME}.der"; then
+            read -rp "Do you want to reboot now to complete the MOK enroll process? [y/n]: " _response
             case "$_response" in
                 [Yy])
                 echo "Rebooting system.."
@@ -109,7 +108,7 @@ You will need to type the password used during this enroll process to successful
                 shutdown -r now
                 ;;
                 *)
-                read -r -p "Manually reboot to finish the MOK enrollment" _response
+                read -rp "Manually reboot to finish the MOK enrollment" _response
                 ;;
             esac
         else
