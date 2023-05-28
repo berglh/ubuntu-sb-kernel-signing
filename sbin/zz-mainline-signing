@@ -15,7 +15,7 @@ if [ $# -ne 2 ] ; then
     exit 1
 fi
 
-if ! command -v sbsign; then
+if [ ! -x "$(command -v sbsign)" ]; then
     echo "sbsign not executable. Bailing." >&2
     exit 1
 fi
@@ -133,10 +133,11 @@ fi
 
 if [ ! -r "$MOK_DIRECTORY/$MOK_CERT_NAME.pem" ] ; then
 	echo "$MOK_CERT_NAME.pem missing. Generating from $MOK_CERT_NAME.der."
-	if ! command -v openssl; then
+    if [ ! -x "$(command -v openssl)" ]; then
 		echo "openssl could not be found." >&2
 		exit 1
 	fi
+
 	openssl x509 -in "$MOK_DIRECTORY/$MOK_CERT_NAME.der" -inform DER -outform PEM -out "$MOK_DIRECTORY/$MOK_CERT_NAME.pem" || { echo "Conversion failed. Bailing." >&2; exit 1 ; }
 fi
 
