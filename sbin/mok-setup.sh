@@ -17,6 +17,7 @@ else
     exit 1
 fi
 
+SCRIPT_DIR="$( cd "$( dirname "$(readlink -f "${BASH_SOURCE[0]}")" )" &> /dev/null && pwd )"
 REQURIED_PACKAGES=("mokutil" "openssl" "sbsigntool" "grub-efi-amd64-signed" "fwts")
 
 for dpkg in "${REQURIED_PACKAGES[@]}"; do
@@ -48,7 +49,7 @@ Required for the first run (default: Y): " _response
     _response=${_response:-"Y"}
     case "$_response" in
         [Yy])
-        source mok-config.sh
+        source "$SCRIPT_DIR/mok-config.sh"
         ;;
         [Nn])
         read -rp "Provide OpenSSL MOK config file path (default: /etc/ssl/openssl-mok.cnf): "
@@ -68,7 +69,7 @@ Required for the first run (default: Y): " _response
     _response=${_response:-"Y"}
     case "$_response" in
         [Yy])
-        source mok-create.sh
+        source "$SCRIPT_DIR/mok-create.sh"
         ;;
         [Nn])
         read -rp "Provide path to existing MOK certificates (default: /var/lib/shim-signed/mok/): "
