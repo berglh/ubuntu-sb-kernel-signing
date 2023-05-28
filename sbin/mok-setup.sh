@@ -122,4 +122,5 @@ You will need to type the password used during this enroll process to successful
         ;;
     esac
 }
+
 enroll_mok_cert

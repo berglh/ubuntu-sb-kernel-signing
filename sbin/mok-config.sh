@@ -52,7 +52,7 @@ EKU="${EXTENDEDKEYUSAGE[$IND]:-EXTENDEDKEYUSAGE[2]}"
 echo ''
 tee "${CONFIGFILE}" <<EOF
 HOME                    = .
-RANDFILE                = $ENV::HOME/.rnd 
+RANDFILE                = \$ENV::HOME/.rnd
 [ req ]
 distinguished_name      = req_distinguished_name
 x509_extensions         = v3
@@ -69,7 +69,7 @@ emailAddress            = "$EMAIL"
 subjectKeyIdentifier    = hash
 authorityKeyIdentifier  = keyid:always,issuer
 basicConstraints        = critical,CA:FALSE
-extendedKeyUsage        = codeSigning,'$EKU'
+extendedKeyUsage        = codeSigning,"$EKU"
 nsComment               = "OpenSSL Generated Certificate"
 EOF
 
