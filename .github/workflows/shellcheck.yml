@@ -13,4 +13,4 @@ jobs:
       with:
         check_together: 'yes'
       env:
-        SHELLCHECK_OPTS: -e SC2001
+        SHELLCHECK_OPTS: -x -e SC2001
