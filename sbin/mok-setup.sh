@@ -22,7 +22,7 @@ REQURIED_PACKAGES=("mokutil" "openssl" "sbsigntool" "grub-efi-amd64-signed" "fwt
 
 for dpkg in "${REQURIED_PACKAGES[@]}"; do
     echo -n "Checking if ${dpkg} is installed..";
-   if ! dpkg -s "${dpkg}" | grep Status | grep -q installed; then
+    if ! dpkg -s "${dpkg}" | grep Status | grep -q installed; then
         echo "Ubuntu package ${dpkg} is required before continuing"
         echo "Install using: sudo apt install ${dpkg}"
         exit 1
