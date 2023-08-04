@@ -1,0 +1,16 @@
+name: Shellcheck
+
+on: [push,pull_request]
+
+jobs:
+  shellcheck:
+    name: Shellcheck
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Shellcheck
+      uses: ludeeus/action-shellcheck@master
+      with:
+        check_together: 'yes'
+      env:
+        SHELLCHECK_OPTS: -P sbin -x -e SC2001

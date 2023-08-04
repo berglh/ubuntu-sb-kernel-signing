@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # requires deb packages: binutils zstd tar curl diffutils openssl sbsigntool
 # sudo apt install binutils zstd tar curl diffutils openssl sbsigntool
@@ -6,16 +6,16 @@
 
 set -e
 
-KERNEL_IMAGE="$2"
+KERNEL_IMAGE=$2
 MOK_CERT_NAME="MOK-Kernel"
 MOK_DIRECTORY="/var/lib/shim-signed/mok"
 
-if [ "$#" -ne "2" ] ; then
+if [ $# -ne 2 ] ; then
     echo "Wrong count of command line arguments. This is not meant to be called directly." >&2
     exit 1
 fi
 
-if [ ! -x "$(command -v sbsign)" ] ; then
+if [ ! -x "$(command -v sbsign)" ]; then
     echo "sbsign not executable. Bailing." >&2
     exit 1
 fi
@@ -28,16 +28,16 @@ echo "
 SIGN_TEMP="$(mktemp -d)"
 trap 'rm -rf -- "$SIGN_TEMP"' EXIT
 
-if grep -q 'vmlinuz\-.*\-\([0-9]\{6\}\)\(rc[0-9]*\)\?\-generic' <<< $KERNEL_IMAGE; then
+if grep -q 'vmlinuz\-.*\-\([0-9]\{6\}\)\(rc[0-9]*\)\?\-generic' <<< "$KERNEL_IMAGE"; then
     echo "${KERNEL_IMAGE} is a generic kernel image to consider signing"
-    KERNEL_VERSION=$(sed -e 's/^.*vmlinuz-//g' -e 's/-generic//g' <<< $KERNEL_IMAGE)
+    KERNEL_VERSION=$(sed -e 's/^.*vmlinuz-//g' -e 's/-generic//g' <<< "$KERNEL_IMAGE")
 else
     echo "${KERNEL_IMAGE} is an official signed image or is not a generic kernel image, not auto-signing for safety" >&2
     exit 0
 fi
 
 echo "Checking if kernel image is already signed"
-if grep -q "signature 1" <<< $(sbverify --list "$KERNEL_IMAGE" 2>&1); then
+if grep -q "signature 1" <<< "$(sbverify --list "$KERNEL_IMAGE" 2>&1)"; then
     echo "${KERNEL_IMAGE} is already signed, aborting signing script" >&2
     sbverify --list "$KERNEL_IMAGE"
     echo "Note: If this fails to boot, it may be because your system does not trust this MOK"
@@ -77,17 +77,17 @@ fi
 
 echo "Checksum of Linux deb from mainline"
 
-MAINLINE_FOLDER=$(sed -e 's:/[^\/]*\.deb::' <<< $KERNEL_IMG_DEB)
-KERNEL_MAIN_VERSION=v$(sed -e 's/-.*$//' -e 's/\.0$//' <<< $KERNEL_VERSION)
+MAINLINE_FOLDER=$(sed -e 's:/[^\/]*\.deb::' <<< "$KERNEL_IMG_DEB")
+KERNEL_MAIN_VERSION=v$(sed -e 's/-.*$//' -e 's/\.0$//' <<< "$KERNEL_VERSION")
 ARCH=$(dpkg --print-architecture)
-if grep -q 'rc' <<< $KERNEL_VERSION; then
-  KERNEL_RC_VERSION=$(sed -e 's/.*\(\-\)\([0-9]\{6\}\)\(rc*\)/\1\3/' <<< $KERNEL_VERSION)
+if grep -q "rc" <<< "$KERNEL_VERSION"; then
+  KERNEL_RC_VERSION="$(sed -e 's/.*\(\-\)\([0-9]\{6\}\)\(rc*\)/\1\3/' <<< "$KERNEL_VERSION")"
 fi
-curl -k -Ss https://kernel.ubuntu.com/~kernel-ppa/mainline/${KERNEL_MAIN_VERSION}${KERNEL_RC_VERSION}/${ARCH}/CHECKSUMS -o $SIGN_TEMP/CHECKSUMS
+curl -k -Ss "https://kernel.ubuntu.com/~kernel-ppa/mainline/${KERNEL_MAIN_VERSION}${KERNEL_RC_VERSION}/${ARCH}/CHECKSUMS" -o "$SIGN_TEMP/CHECKSUMS"
 echo "Mainline folder: $MAINLINE_FOLDER, Kernel image: $KERNEL_IMAGE, Sign temp: $SIGN_TEMP"
-cd $MAINLINE_FOLDER
+cd "$MAINLINE_FOLDER"
 
-if sha256sum -c <<< "$(sed '1,/^.*ha256:$/d' $SIGN_TEMP/CHECKSUMS | grep $(sed 's:.*/::' <<< $KERNEL_IMG_DEB))"; then
+if sha256sum -c <<< "$(sed '1,/^.*ha256:$/d' "$SIGN_TEMP/CHECKSUMS" | grep "$(sed 's:.*/::' <<< "$KERNEL_IMG_DEB")")"; then
     echo "Successfully sha256 verified deb package"
 else
     echo "Could not sha256 verfiy deb package, aborting sign" >&2
@@ -95,23 +95,24 @@ else
 fi
 
 echo "Verify image being signed comes from mainline deb package"
+KERNEL_IMG_DEB_CONTENTS="$(ar t "$KERNEL_IMG_DEB")"
 
-if grep -q 'data.tar.zst' <<< $(ar t $KERNEL_IMG_DEB); then
-    ar p $KERNEL_IMG_DEB data.tar.zst | tar -I zstd -xOf - .$KERNEL_IMAGE > $SIGN_TEMP/$(sed 's:.*/::' <<< $KERNEL_IMAGE)
-elif grep -q 'data.tar.xz' <<< $(ar t $KERNEL_IMG_DEB); then
-    ar p $KERNEL_IMG_DEB data.tar.xz | tar -JxOf - .$KERNEL_IMAGE > $SIGN_TEMP/$(sed 's:.*/::' <<< $KERNEL_IMAGE)
-elif grep -q 'data.tar' <<< $(ar t $KERNEL_IMG_DEB); then
-    ar p $KERNEL_IMG_DEB data.tar | tar -xOf - .$KERNEL_IMAGE > $SIGN_TEMP/$(sed 's:.*/::' <<< $KERNEL_IMAGE)
+if grep -q "data.tar.zst" <<< "$KERNEL_IMG_DEB_CONTENTS"; then
+    ar p "$KERNEL_IMG_DEB" "data.tar.zst" | tar -I zstd -xOf - ".$KERNEL_IMAGE" > "$SIGN_TEMP/$(sed 's:.*/::' <<< "$KERNEL_IMAGE")"
+elif grep -q "data.tar.xz" <<< "$KERNEL_IMG_DEB_CONTENTS"; then
+    ar p "$KERNEL_IMG_DEB" "data.tar.xz" | tar -JxOf - ".$KERNEL_IMAGE" > "$SIGN_TEMP/$(sed 's:.*/::' <<< "$KERNEL_IMAGE")"
+elif grep -q "data.tar" <<< "$KERNEL_IMG_DEB_CONTENTS"; then
+    ar p "$KERNEL_IMG_DEB" "data.tar" | tar -xOf - ".$KERNEL_IMAGE" > "$SIGN_TEMP/$(sed 's:.*/::' <<< "$KERNEL_IMAGE")"
 else
     echo "Could not find kernel image in reference DEB file" >&2
     exit 0
 fi
 
-cmp $KERNEL_IMAGE $SIGN_TEMP/$(sed 's:.*/::' <<< $KERNEL_IMAGE)
-if [ $? == 0 ]; then
-    echo "Validated $KERNEL_IMAGE is present in $(sed 's:.*/::' <<< $KERNEL_IMG_DEB)"
+
+if cmp "$KERNEL_IMAGE" "$SIGN_TEMP/$(sed 's:.*/::' <<< "$KERNEL_IMAGE")"; then
+    echo "Validated $KERNEL_IMAGE is present in $(sed 's:.*/::' <<< "$KERNEL_IMG_DEB")"
 else
-    echo "$KERNEL_IMAGE does not match image in $(sed 's:.*/::' <<< $KERNEL_IMG_DEB)" &>2
+    echo "$KERNEL_IMAGE does not match image in $(sed 's:.*/::' <<< "$KERNEL_IMG_DEB")" >&2
     exit 0
 fi
 
@@ -132,18 +133,19 @@ fi
 
 if [ ! -r "$MOK_DIRECTORY/$MOK_CERT_NAME.pem" ] ; then
 	echo "$MOK_CERT_NAME.pem missing. Generating from $MOK_CERT_NAME.der."
-	if [ ! -x "$(command -v openssl)" ] ; then
+    if [ ! -x "$(command -v openssl)" ]; then
 		echo "openssl could not be found." >&2
 		exit 1
 	fi
+
 	openssl x509 -in "$MOK_DIRECTORY/$MOK_CERT_NAME.der" -inform DER -outform PEM -out "$MOK_DIRECTORY/$MOK_CERT_NAME.pem" || { echo "Conversion failed. Bailing." >&2; exit 1 ; }
 fi
 
 echo "Signing $KERNEL_IMAGE..."
 sbsign --key "$MOK_DIRECTORY/$MOK_CERT_NAME.priv" --cert "$MOK_DIRECTORY/$MOK_CERT_NAME.pem" --output "$KERNEL_IMAGE" "$KERNEL_IMAGE"
-grep -q "signature 1" <<< $(sbverify --list "$KERNEL_IMAGE" 2>&1)
 
-if [ $? == 0 ]; then # adding a new line at the end to show clearly show the end of script
+
+if grep -q "signature 1" <<< "$(sbverify --list "$KERNEL_IMAGE" 2>&1)"; then # adding a new line at the end to show clearly show the end of script
     sbverify --list "$KERNEL_IMAGE"
     echo "Successfully signed $KERNEL_IMAGE
     "

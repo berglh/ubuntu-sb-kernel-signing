@@ -1,13 +1,13 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Author: @maxried https://gist.github.com/maxried/796d1f3101b3a03ca153fa09d3af8a11
 
 set -e
 
-KERNEL_IMAGE="$2"
+KERNEL_IMAGE=$2
 MOK_CERT_NAME="MOK-Kernel"
 MOK_DIRECTORY="/var/lib/shim-signed/mok"
 
-if [ "$#" -ne "2" ] ; then
+if [ $# -ne 2 ] ; then
     echo "Wrong count of command line arguments. This is not meant to be called directly." >&2
     exit 1
 fi
