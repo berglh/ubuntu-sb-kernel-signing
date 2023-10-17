@@ -83,7 +83,7 @@ ARCH=$(dpkg --print-architecture)
 if grep -q "rc" <<< "$KERNEL_VERSION"; then
   KERNEL_RC_VERSION="$(sed -e 's/.*\(\-\)\([0-9]\{6\}\)\(rc*\)/\1\3/' <<< "$KERNEL_VERSION")"
 fi
-curl -k -Ss "https://kernel.ubuntu.com/~kernel-ppa/mainline/${KERNEL_MAIN_VERSION}${KERNEL_RC_VERSION}/${ARCH}/CHECKSUMS" -o "$SIGN_TEMP/CHECKSUMS"
+curl -k -Ss "https://kernel.ubuntu.com/mainline/${KERNEL_MAIN_VERSION}${KERNEL_RC_VERSION}/${ARCH}/CHECKSUMS" -o "$SIGN_TEMP/CHECKSUMS"
 echo "Mainline folder: $MAINLINE_FOLDER, Kernel image: $KERNEL_IMAGE, Sign temp: $SIGN_TEMP"
 cd "$MAINLINE_FOLDER"
 
