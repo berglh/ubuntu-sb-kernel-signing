@@ -8,6 +8,10 @@ It contains scripts to:
 - Create and enrol Machine Owner Key (MOK) for signing kernels
 - Post-installation scripts that automate signing of kernels with a MOK
 
+### TLDR; Update Notes
+
+- **2023-10-17**: Ubuntu Kernel Mainline URL was updated creating breaking condition. Update signing scripts from `main` branch to resolve.
+
 ### Topics
 
 - [Introduction](#introduction)
