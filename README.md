@@ -5,7 +5,7 @@ The purpose of this repository is to explain how to sign Ubuntu kernels using a 
 
 It contains scripts to:
 
-- Create and enrol Machine Owner Key (MOK) for signing kernels
+- Create and enroll Machine Owner Key (MOK) for signing kernels
 - Post-installation scripts that automate signing of kernels with a MOK
 
 ### TLDR; Update Notes
@@ -69,7 +69,7 @@ The issue with using the primary documented method of a user generated MOK is th
 
 Use of the default MOK on a Linux kernel image results in a failure of kernel signature validation. A different MOK that does not contain the OID `1.3.6.1.4.1.2312.16.1.2` by the `shim` bootloader started by `grub`.
 
-Here is the X509 extensions for the default Ubuntu generated MOK. The `1.3.6.1.4.1.2312.16.1.2` code signing OID is present. Thus this can't be used for Secure Boot kernel image validation.
+Here are the X.509 extensions for the default Ubuntu generated MOK. The `1.3.6.1.4.1.2312.16.1.2` code signing OID is present. Thus this can't be used for Secure Boot kernel image validation.
 
 ```bash
 sudo openssl x509 -text -in /var/lib/shim-signed/mok/MOK.pem
@@ -146,7 +146,7 @@ A reminder, this script works well for signing **all** kernel images being insta
 
 **Update** 2022-04-28: Renamed signing scripts from `00-` prefix to `zz-` prefix to ensure any other scripts before `zz-update-grub` execute accordingly. This is important so that NVIDIA DKMS modules are generated before the signing script has a chance to fail. This will then enable the DKMS modules to load correctly if Secure Boot is disabled.
 
-The script [zz-mainline-signing](sbin/zz-mainline-signing) is designed to only sign kernels that are installed using the [mainline](https://github.com/bkw777/mainline) Ubuntu utility or via `dpkg` where the kerenl was downloaded and installed from the [Ubuntu Mainline](https://kernel.ubuntu.com/~kernel-ppa/mainline/?C=M;O=D) website. This script performs additional checks that validate the authenticity of the kernel images.
+The script [zz-mainline-signing](sbin/zz-mainline-signing) is designed to only sign kernels that are installed using the [mainline](https://github.com/bkw777/mainline) Ubuntu utility or via `dpkg` where the kernel was downloaded and installed from the [Ubuntu Mainline](https://kernel.ubuntu.com/~kernel-ppa/mainline/?C=M;O=D) website. This script performs additional checks that validate the authenticity of the kernel images.
 
 1. Searches for matching deb files downloaded by mainline
 2. Downloads the checksum file from the Ubuntu mainline servers
